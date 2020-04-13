@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Pay by bank Transfer</title></head>
+
+<body>
+<!--<script src="http://localhost:5300/dist/1.0.0/openBanking.js"></script>-->
+<script src="https://qa01.gateway.mastercard.com/static/open-banking/1.0.0/openBanking.js"></script>
+<!--<script src="dist/1.0.0/openBanking.min.js"></script>-->
+<script>
+  var config = {
+    merchantId: 'TESTABC',
+    merchantName: 'Cake Shop',
+    amount: '325.27',
+    orderId: '123',
+    transactionId: "tran-123",
+    sessionId: 'SESSSION123',
+    wsVersion: '',
+  };
+  OpenBanking.configure(config, function (res) {
+    console.log(res);
+  });
+
+</script>
+<input type="button" value="pay" id="pay" onclick="OpenBanking.launchUI()"></input>
+</body>
+</html>

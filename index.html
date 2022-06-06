@@ -1,28 +1,305 @@
-<!doctype html>
-<html lang="en">
+<html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pay by bank Transfer</title></head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C2P JS SDK Merchant Simulator</title>
+    <script src="vendor.js"></script>
+    <link rel="stylesheet" href="bootstrap.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        .paymentOptions {
+            font-size: 24px;
+            text-align: left;
+            color: #0000ff;
+            padding: 10px;
+            transition-duration: 0.4s;
 
+        }
+        .fullTextArea {
+            width: 100%;
+            font-size: large;
+            text-align: left;
+            color: #0000ff;
+            border-style: hidden;
+        }
+        .textBorder {
+            border-color: #00008b;
+            border-style: inset;
+        }
+        [class^="item"] {
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        @media only screen and (min-width: 1024px){
+            .grid-container {
+                display: grid;
+                /*grid-template-columns: repeat(7, 1fr);*/
+                /*grid-template-rows: repeat(6, 1fr);*/
+                grid-template-areas: "header header header . . . ."
+                        "scriptag scriptag scriptag embedded embedded embedded embedded"
+                        "preinit preinit preinit embedded embedded embedded embedded"
+                        "content content content embedded embedded embedded embedded"
+                        "content content content embedded embedded embedded embedded"
+                        "content content content embedded embedded embedded embedded"
+                        "content content content embedded embedded embedded embedded"
+                        "content content content paymentMode response response response"
+                        "footer footer footer . . . .";
+                /*padding: 400px;*/
+                padding: 5%;
+            }
+        }
+        .item1 {
+            grid-area: header;
+            background-color: #ffffff;
+            text-align: center;
+            color: green;
+            padding: 10px 20px;
+            text-align: center;
+            display: inline-block;
+            font-size: 36px;
+            font-weight: bolder;
+        }
+        .item2 {
+            grid-area: content;
+        }
+        .item3 {
+            grid-area: response;
+        }
+        .item4 {
+            grid-area: preinit;
+        }
+        .item5 {
+            grid-area: footer;
+        }
+        .item6 {
+            grid-area: scriptag;
+        }
+        .embedded {
+            grid-area: embedded;
+
+        }
+        .embeddedBorder {
+            border-style: groove;
+            border-width: thin;
+            border-color: #ff0000;
+        }
+        .button {
+            background-color: white; /* Green */
+            border-color: black;
+            color: black;
+            padding: 5px 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bolder;
+            transition-duration: 0.4s;
+        }
+        .button:hover {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .button:active {
+            background-color: #3e8e41;
+            box-shadow: 0 5px #666;
+            transform: translateY(4px);
+        }
+        .area-label-tag {
+            color: black;
+            padding: 15px 32px;
+            text-align: left;
+            display: inline-block;
+            font-size: 24px;
+            font-weight: bolder;
+            display: flex;
+        }
+        .title-tag {
+            color: #4CAF50;
+            padding: 15px 32px;
+            text-align: center;
+            display: inline-block;
+            font-size: 36px;
+            font-weight: bolder;
+            display: flex;
+        }
+        /* The container */
+        .container {
+            display: block;
+            position: relative;
+            padding-left: 35px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            font-size: 22px;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        /* Hide the browser's default radio button */
+        .container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* On mouse-over, add a grey background color */
+        .container:hover input ~ .checkmark {
+            border: none;
+            border-style: solid;
+            border-width: thick;
+            border-color: #80bdff;
+        }
+        /* When the radio button is checked, add a blue background */
+        .container input:checked ~ .checkmark {
+            border: none;
+            background-color: #80bdff;
+        }
+        /* Create the indicator (the dot/circle - hidden when not checked) */
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+
+
+    </style>
+</head>
 <body>
-<!--<script src="http://localhost:5300/dist/1.0.0/openBanking.js"></script>-->
-<script src="https://qa01.gateway.mastercard.com/static/open-banking/1.0.0/open-banking.min.js"></script>
-<!--<script src="dist/1.0.0/openBanking.min.js"></script>-->
-<script>
-  var config = {
-    merchantId: 'TESTABC',
-    merchantName: 'Cake Shop',
-    amount: '325.27',
-    orderId: '123',
-    transactionId: "tran-123",
-    sessionId: 'SESSSION123',
-    wsVersion: '',
-  };
-  OpenBanking.configure(config, function (res) {
-    console.log(res);
-  });
+<div class="grid-container">
+    <div class="item1">C2P JS SDK Simulator</div>
+    <div class="item6">
+        <label class="area-label-tag">Click to Pay URL</label>
+        <div class="textBorder">
+            <textarea class="fullTextArea" id="scriptTag"  name="scriptTag" rows="3"></textarea>
+        </div>
+    </div>
+    <div class="item2">
+        <label class="area-label-tag">Configure Object
+            <small style="font-size: x-small; font-weight: normal; padding-left: 5px">( in <strong>JSON</strong> format )</small>
+        </label>
+        <div class="textBorder">
+            <textarea class="fullTextArea" id="javascriptContent" rows="35"></textarea>
+        </div>
+    </div>
+    <div class="item3">
+        <label class="area-label-tag">Response</label>
+        <div class="textBorder">
+            <textarea class="fullTextArea" style="color: #ff0000" id="response" rows="5"></textarea>
+        </div>
+    </div>
+    <div id="embeddedBlock" class="embedded embeddedBorder">
+        <label id="embeddedLabel" class="area-label-tag"><u>Embedded Block</u></label>
+        <div id="cardListContainer"></div><br/>
+        <div id="otpContainer"></div><br/>
+        <div id="cardFacilitator" style="height: 600px"></div><br/>
+        <div id="c2p-oncomplete-scheme"></div><br/>
+        <div id="c2p-oncomplete-correlation"></div><br/>
+        <div id="c2p-oncomplete-lastFour"></div><br/>
+        <div id="c2p-oncomplete-cardArtUri"></div><br/>
+        <div id="c2p-onChange-callback"></div><br/>
+        <div id="c2p-onError-callback"></div><br/>
+    </div>
+    <div class="item5">
+        <button id="run_script_btn" class="btn btn-primary button" data-toggle="modal" onclick="loadConfigs();" style="margin-right: 20px">Run Script</button>
+        <button id="enrollUser" class="btn btn-primary button" data-toggle="modal" onclick="enrollUser();" style="margin-right: 20px; display: none">Enroll User</button>
+        <button id="bookmarkPage" class="btn btn-primary button" onclick="buildBookmark(true);" style="margin-right: 20px">Bookmark</button>
+        <button id="clearMemory" class="btn btn-primary button" onclick="clearMemory();" style="margin-right: 20px">Clear Memory</button>
+    </div>
+</div>
 
+<script type="text/javascript">
+
+    (new URL(document.location.href)).searchParams.forEach((textvalue, elId) => {
+        const textFields = ["preInitScript", "scriptTag", "javascriptContent"]
+        if (textFields.includes(elId)) {
+            document.getElementById(elId).value = textvalue;
+        }
+    });
+
+    function executeScriptTag() {
+        localStorage.clear();
+        document.getElementById('response').value = '';
+        let script = document.createElement( 'script' );
+        script.type = 'text/javascript';
+        script.src = document.getElementById("scriptTag").value;
+        localStorage.setItem('scriptSource', script.src);
+
+        script.setAttribute("onload", "executeConfigure()");
+        document.body.appendChild(script);
+    }
+
+    function executeConfigure() {
+        let configureObj = JSON.parse(document.getElementById('javascriptContent').value);
+        localStorage.setItem('configure', configureObj);
+        document.getElementById("embeddedBlock").style.border = "none";
+        document.getElementById("run_script_btn").disabled = true;
+        document.getElementById("run_script_btn").style.backgroundColor = "F5F5F5";
+        configureObj.callbacks = {};
+        configureObj.callbacks.onComplete = onComplete;
+        configureObj.callbacks.onStateChange = onStateChange;
+        configureObj.callbacks.onError = onError;
+
+        ClickToPay.configure(configureObj);
+    }
+
+    function enrollUser() {
+        ClickToPay.checkoutWithNewCard();
+    }
+
+    function onComplete(correlationId, scheme, lastFour, cardArtUri) {
+        console.log("onComplete fired");
+        console.log("Correlation ID: " + correlationId);
+        console.log("Scheme: " + scheme);
+        document.getElementById('c2p-oncomplete-scheme').innerText = scheme;
+        document.getElementById('c2p-oncomplete-correlation').innerText = correlationId;
+        document.getElementById('c2p-oncomplete-lastFour').innerText = lastFour;
+        document.getElementById('c2p-oncomplete-cardArtUri').innerText = cardArtUri;
+        document.getElementById('response').value = JSON.stringify({"correlationId": correlationId, "scheme": scheme, "lastFour" : lastFour, "cardArtUri": cardArtUri})
+    }
+
+    function onStateChange(changeInfo) {
+        console.log("onStateChange fired");
+        console.log(changeInfo);
+        if(changeInfo && changeInfo.newState.payerState && !changeInfo.newState.payerState.deviceRecognized && !changeInfo.newState.payerState.emailEnrolled && !changeInfo.newState.payerState.emailVerified) {
+            document.getElementById("enrollUser").style.display = '';
+            document.getElementById('c2p-onChange-callback').innerText = JSON.stringify(changeInfo);
+        }
+    }
+
+    function onError(errInfo) {
+        console.log("onError fired");
+        console.log(errInfo);
+        document.getElementById('c2p-onError-callback').innerText = JSON.stringify(errInfo);
+    }
+
+    function loadConfigs() {
+        executeScriptTag();
+    }
+
+    function clearMemory() {
+        localStorage.clear();
+        sessionStorage.clear();
+        buildBookmark(false);
+    }
+
+    function buildBookmark(promptBookmark) {
+        var bookmark = document.location.href.split("?")[0];
+        var inputFields = document.getElementsByTagName('textarea');
+        for (let i = 0; i < inputFields.length; i++) {
+            if ( inputFields[i].id === "scriptTag" || inputFields[i].id === "javascriptContent") {
+                var seperator = (i == 0) ? "?" : "&";
+                bookmark = bookmark + seperator + inputFields[i].id + "=" + encodeURIComponent(inputFields[i].value);
+            }
+        }
+        (new URL(bookmark)).searchParams.forEach((x, y) =>
+            document.getElementById(y).value = x);
+        document.location.href = bookmark;
+    }
 </script>
-<input type="button" value="pay" id="pay" onclick="OpenBanking.launchUI()"></input>
 </body>
 </html>
+

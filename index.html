@@ -1,62 +1,51 @@
 <html>
-    <head>
-<!-- CSS only -->
 
+<head>
 
+    <script >
+	
+	function loadscript() {
+	
+		let script = document.createElement( 'script' );
+		const searchParams = new URLSearchParams(window.location.search);
+var sessionId = searchParams.get('sessionId'); 
 
-<script type="text/javascript" src="https://static.stage.gateway.mastercard.com/static/checkout/checkout.min.js"></script>
-<script type="text/javascript" src="https://static.stage.gateway.mastercard.com/static/checkout/landing/landing.js"></script>
-<script type="text/javascript" src="https://static.stage.gateway.mastercard.com/static/checkout/checkout-core/polyfills.js"></script>
-<script type="text/javascript" src="https://static.stage.gateway.mastercard.com/static/checkout/checkout-core/scripts.js"></script>
-<script type="text/javascript" src="https://static.stage.gateway.mastercard.com/static/checkout/checkout-core/runtime.js"></script>
-<script type="text/javascript" src="https://static.stage.gateway.mastercard.com/static/checkout/checkout-core/styles.css"></script>
-<script type="text/javascript" src="https://static.stage.gateway.mastercard.com/static/checkout/checkout-core/assets/blank.svg"></script>
-<script type="text/javascript" src="https://static.stage.gateway.mastercard.com/static/checkout/checkout-core/image-sprite.png"></script>
-<script type="text/javascript" src="https://static.stage.gateway.mastercard.com/static/checkout/checkout-core/language-selector-icon.svg"></script>
-<script type="text/javascript" src="https://static.stage.gateway.mastercard.com/static/checkout/checkout-core/assets/general-icons/info.svg"></script>
-<script type="text/javascript" src="https://static.stage.gateway.mastercard.com/static/checkout/checkout-core/main.js"></script>
+			script.type = 'text/javascript';
+			script.src = 'https://mtf.gateway.mastercard.com/static/checkout/checkout.js';
+			document.body.appendChild(script);
+			setTimeout(function() {
+						Checkout.configure({
+				session: {
+					id: sessionId
+				}
+			});
+			
+			Checkout.showEmbeddedPage('#embed-target');
+			}, 2000)
+			
 
-<!-- 
-<script type="text/javascript" src="https://na.gateway.mastercard.com/static/checkout/checkout.min.js"></script>
-<script type="text/javascript" src="https://na.gateway.mastercard.com/static/checkout/landing/landing.js"></script>
-<script type="text/javascript" src="https://na.gateway.mastercard.com/static/checkout/checkout-core/polyfills.js"></script>
-<script type="text/javascript" src="https://na.gateway.mastercard.com/static/checkout/checkout-core/scripts.js"></script>
-<script type="text/javascript" src="https://na.gateway.mastercard.com/static/checkout/checkout-core/runtime.js"></script>
-<script type="text/javascript" src="https://na.gateway.mastercard.com/static/checkout/checkout-core/styles.css"></script>
-<script type="text/javascript" src="https://na.gateway.mastercard.com/static/checkout/checkout-core/assets/blank.svg"></script>
-<script type="text/javascript" src="https://na.gateway.mastercard.com/static/checkout/checkout-core/image-sprite.png"></script>
-<script type="text/javascript" src="https://na.gateway.mastercard.com/static/checkout/checkout-core/language-selector-icon.svg"></script>
-<script type="text/javascript" src="https://na.gateway.mastercard.com/static/checkout/checkout-core/assets/general-icons/info.svg"></script>
-<script type="text/javascript" src="https://na.gateway.mastercard.com/static/checkout/checkout-core/main.js"></script>
+			}
+	</script>
 
-
-<script type="text/javascript" src="https://ap.gateway.mastercard.com/static/checkout/checkout.min.js"></script>
-<script type="text/javascript" src="https://ap.gateway.mastercard.com/static/checkout/landing/landing.js"></script>
-<script type="text/javascript" src="https://ap.gateway.mastercard.com/static/checkout/checkout-core/polyfills.js"></script>
-<script type="text/javascript" src="https://ap.gateway.mastercard.com/static/checkout/checkout-core/scripts.js"></script>
-<script type="text/javascript" src="https://ap.gateway.mastercard.com/static/checkout/checkout-core/runtime.js"></script>
-<script type="text/javascript" src="https://ap.gateway.mastercard.com/static/checkout/checkout-core/styles.css"></script>
-<script type="text/javascript" src="https://ap.gateway.mastercard.com/static/checkout/checkout-core/assets/blank.svg"></script>
-<script type="text/javascript" src="https://ap.gateway.mastercard.com/static/checkout/checkout-core/image-sprite.png"></script>
-<script type="text/javascript" src="https://ap.gateway.mastercard.com/static/checkout/checkout-core/language-selector-icon.svg"></script>
-<script type="text/javascript" src="https://ap.gateway.mastercard.com/static/checkout/checkout-core/assets/general-icons/info.svg"></script>
-<script type="text/javascript" src="https://ap.gateway.mastercard.com/static/checkout/checkout-core/main.js"></script>
- 
-
-<script type="text/javascript" src="https://eu.gateway.mastercard.com/static/checkout/checkout.min.js"></script>
-<script type="text/javascript" src="https://eu.gateway.mastercard.com/static/checkout/landing/landing.js"></script>
-<script type="text/javascript" src="https://eu.gateway.mastercard.com/static/checkout/checkout-core/polyfills.js"></script>
-<script type="text/javascript" src="https://eu.gateway.mastercard.com/static/checkout/checkout-core/scripts.js"></script>
-<script type="text/javascript" src="https://eu.gateway.mastercard.com/static/checkout/checkout-core/runtime.js"></script>
-<script type="text/javascript" src="https://eu.gateway.mastercard.com/static/checkout/checkout-core/styles.css"></script>
-<script type="text/javascript" src="https://eu.gateway.mastercard.com/static/checkout/checkout-core/assets/blank.svg"></script>
-<script type="text/javascript" src="https://eu.gateway.mastercard.com/static/checkout/checkout-core/image-sprite.png"></script>
-<script type="text/javascript" src="https://eu.gateway.mastercard.com/static/checkout/checkout-core/language-selector-icon.svg"></script>
-<script type="text/javascript" src="https://eu.gateway.mastercard.com/static/checkout/checkout-core/assets/general-icons/info.svg"></script>
-<script type="text/javascript" src="https://eu.gateway.mastercard.com/static/checkout/checkout-core/main.js"></script>
-
--->
+    <script type="text/javascript">
+        function errorCallback(error) {
+            console.log(JSON.stringify(error));
+        }
+        function cancelCallback() {
+            console.log('Payment cancelled');
+        }
+		
+			
+		
+        
+    </script>
+</head>
 
 <body>
+    <div id="embed-target"> </div>
+
+    <input type="button" value="Pay with Embedded Page" onclick="loadscript();" />
+    <input type="button" value="Pay with Payment Page" onclick="Checkout.showPaymentPage();" />
 </body>
+
 </html>

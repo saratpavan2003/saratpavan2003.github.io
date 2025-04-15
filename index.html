@@ -1,51 +1,273 @@
 <html>
+    <head>
+<!-- CSS only -->
+<script src="https://sandbox.src.mastercard.com/srci/integration/2/lib.js?locale=en_US "> </script>
+<script type="module" src="https://src.mastercard.com/srci/integration/components/src-ui-kit/src-ui-kit.esm.js"></script>
+<link rel="stylesheet" href="https://src.mastercard.com/srci/integration/components/src-ui-kit/src-ui-kit.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+<script type="text/javascript">
 
-<head>
+window.clicktopay = new MastercardCheckoutServices()
+let urlParams = new URLSearchParams(document.location.search);
+let srcDpaId = urlParams.get("srcDpaId"); // is the string "Jonathan"
+const params = {
+ srcDpaId: srcDpaId, // required DPA Identifier, generated during registration.
+ dpaData: {
+ dpaName: "Sarat C2P test 5"       //required
+ },
+ dpaTransactionOptions: {
+     dpaLocale: "en_US",      // required
+	 paymentOptions: [{dynamicDataType: "CARD_APPLICATION_CRYPTOGRAM_SHORT_FORM"}]
+  },
+  cardBrands: ["mastercard", "amex", "visa"]  // required. Array of card brands supported.
+}
 
-    <script >
-	
-	function loadscript() {
-	
-		let script = document.createElement( 'script' );
-		const searchParams = new URLSearchParams(window.location.search);
-var sessionId = searchParams.get('sessionId'); 
 
-			script.type = 'text/javascript';
-			script.src = 'https://mtf.gateway.mastercard.com/static/checkout/checkout.js';
-			document.body.appendChild(script);
-			setTimeout(function() {
-						Checkout.configure({
-				session: {
-					id: sessionId
+function init(){
+const initPromise = window.clicktopay.init(params) //  returns a promise
+
+initPromise
+  .then(function(payload){
+		console.log(payload)
+		getCards()
+  })  // No other library methods should be invoked until `init` resolves
+  .catch(function(payload){ 
+		console.log(payload)
+	})
+}
+
+
+async function initializeCardList(maskedCards) {
+	const srcCardList = document.createElement('src-card-list');
+	var cardListElem = document.getElementById('cardList');
+	cardListElem.innerText = ''
+	cardListElem.appendChild(srcCardList);
+	await customElements.whenDefined('src-card-list');
+	srcCardList.loadCards(maskedCards);
+
+	srcCardList.addEventListener('selectSrcDigitalCardId', function (event) {
+		console.log('srcDigitalCardId: ', event.detail);
+		showDCF();
+		checkoutWithCard(event.detail)
+	});
+};
+
+function destroyIFrame () {
+  const iframeElement = document.getElementById('c2p-dcf-iframe');;
+  if (iframeElement) {
+	document.getElementById("dcf-container").removeChild(iframeElement);
+  }
+}
+
+function createIFrame (cardBrand) {
+  destroyIFrame()
+  const container = document.createElement('iframe');
+  container.title = 'Click to Pay';
+  container.id = 'c2p-dcf-iframe';
+  container.frameBorder = 'none';
+  container.style.zIndex = '9999';
+  container.style.backgroundColor = 'transparent';
+  container.style.border = '1px';
+  container.style.overflowX = 'hidden';
+  container.style.overflowY = 'auto';
+  container.style.left = '0px';
+  container.style.top = '0px';
+  container.style.width = '100%';
+  container.style.height = '100%';
+
+  document.getElementById("dcf-container").appendChild(container);
+  const iframeElement = document.getElementById(container.id);
+  return iframeElement.contentWindow;
+}
+
+function showDCF(){
+	document.getElementById("dcf-container").style.display = ''
+}
+
+function hideDCF(){
+	document.getElementById("dcf-container").style.display = 'none'
+}
+
+
+
+function checkoutWithCard(srcDigitalCardId){
+const params1 = {
+  srcDigitalCardId: srcDigitalCardId
+}
+params1.windowRef = createIFrame()
+const checkoutWithCardPromise = window.clicktopay.checkoutWithCard(params1) //  returns a promise
+checkoutWithCardPromise
+  .then(promiseResolvedHandlerForcheckoutWithCard)
+  .catch(promiseRejectedHandlerForcheckoutWithCard)
+}
+
+// Define response handlers
+function promiseResolvedHandlerForcheckoutWithCard(payload) {
+	hideDCF();
+	console.log(payload);
+	document.getElementById('response').style.display = '';
+	document.getElementById('scheme').innerText = payload.network;
+	document.getElementById('checkoutActionCode').innerText = payload.checkoutActionCode;
+	document.getElementById('srcCorrelationId').innerText = payload.checkoutResponseData.srcCorrelationId;
+	document.getElementById('merchantTransactionID').innerText = payload.headers['merchant-transaction-id'];
+}
+
+
+function getCards() {
+	const getCardsPromise = window.clicktopay.getCards() //returns a promise
+	getCardsPromise
+	.then(function promiseResolvedHandlerForGetCards(maskedCards) {
+			console.log(maskedCards)
+				if(maskedCards.length > 0){ //user recognized via cookie
+					initializeCardList(maskedCards)
+				} else {
 				}
-			});
-			
-			Checkout.showEmbeddedPage('#embed-target');
-			}, 3000)
-			
+	})
+	.catch(function promiseRejectedHandlerForGetCards(payload) {
+		console.log(payload)
+	})
+}
 
-			}
-	</script>
+async function initializeOTP(payload) {
+	document.getElementById('otp').style.display = '';
+	const srcOtpInput = document.createElement('src-otp-input');
+	document.getElementById('otp').appendChild(srcOtpInput);
+	await customElements.whenDefined('src-otp-input');
+	srcOtpInput.loadSupportedValidationChannels(payload.supportedValidationChannels);
+	srcOtpInput.networkId = payload.network;
+	srcOtpInput.maskedIdentityValue = payload.maskedValidationChannel;
+	srcOtpInput.addEventListener('resendOtp', function(e) {
+	  console.log(e.detail, 'OTP resend requested by user');
+	});
+	srcOtpInput.addEventListener('notYouRequested', function () {
+	  console.log('user requested Not you? method');
+	});
+	var OTP;
+	srcOtpInput.addEventListener('continue', function (e) {
+		srcOtpInput.setAttribute('disable-elements', true)
+		const validatePromise = window.clicktopay.validate({"value": OTP}); 
+		
+		validatePromise
+		.then(function promiseResolvedHandlerForValidate(payload) {
+			console.log(payload);
+			document.getElementById('otp').style.display = 'none';
+			initializeCardList(payload);
+		})
+		.catch(function promiseRejectedHandlerForValidate(payload) {
+			console.log(payload)
+			document.getElementById('otpError').innerText = payload;
+		})
+	})
+	
+	srcOtpInput.addEventListener('otpChanged', function (e) {
+		console.log('user changed OTP:', e);
+		OTP = e.detail
+	})
+};
 
-    <script type="text/javascript">
-        function errorCallback(error) {
-            console.log(JSON.stringify(error));
-        }
-        function cancelCallback() {
-            console.log('Payment cancelled');
-        }
+function lookup(){
+  let email = document.getElementById('email').value;
+  if (email) {
+  
+	document.getElementById('otp').innerText = ''
+	const sampleiDLookupParams = {email: email}
+	const idLookupPromise = window.clicktopay.idLookup(sampleiDLookupParams) //  returns a promise
+	idLookupPromise
+	.then(function promiseResolvedHandlerForIdLookup(payload) {
+		console.log(payload)
+		if(payload.consumerPresent) {
+			const initiateValidationPromise = window.clicktopay.initiateValidation() //  returns a promise
+			initiateValidationPromise
+			.then(function promiseResolvedHandlerForinitiateValidation(payload) {
+				console.log(payload);
+				initializeOTP(payload);
+			})
+			.catch(function promiseRejectedHandlerForinitiateValidation(payload) {
+				console.log(payload)
+			})
+		} else {
+			document.getElementById('consumerNotFound').innerText = 'Consumer not found'
+		}
+	})
+  .catch(function promiseRejectedHandlerForIdLookup(payload) {
+	console.log(payload)
+	})  
+  }
+}
+
+function addCard(){
+
+	const encryptCardParams = {
+		primaryAccountNumber: document.getElementById('primaryAccountNumber').value,
+		panExpirationMonth: document.getElementById('panExpirationMonth').value,
+		panExpirationYear: document.getElementById('panExpirationYear').value,
+		cardSecurityCode: document.getElementById('cardSecurityCode').value
+	}
+	const encryptCardPromise = window.clicktopay.encryptCard(encryptCardParams)
+	// returns a promise
+
+	encryptCardPromise
+	.then(function(payload) {
+		const params = {
+			windowRef: createIFrame(), // required.
+			encryptedCard: payload.encryptedCard, // required
+			cardBrand: payload.cardBrand
+		}
+		const checkoutWithNewCardPromise = window.clicktopay.checkoutWithNewCard(params) //  returns a promise
 		
-			
-		
-        
-    </script>
+		checkoutWithNewCardPromise
+		  .then(promiseResolvedHandlerForcheckoutWithCard)
+		  .catch(promiseRejectedHandlerForcheckoutWithCard)
+	})
+	.catch(function(payload) {
+		console.log(payload)
+	})
+}
+
+
+
+</script>
 </head>
-
 <body>
-    <div id="embed-target"> </div>
 
-    <input type="button" value="Pay with Embedded Page" onclick="loadscript();" />
-    <input type="button" value="Pay with Payment Page" onclick="Checkout.showPaymentPage();" />
+<button style = "margin:20px;" class="btn btn-primary" onclick="init()"> Init</button><br><br>
+<button style = "margin:20px;" class="btn btn-primary" onclick="window.location.href='http://localhost:9000/srcV2-directaAPITokenPassthrough2.html'"> Redirect to Page 2</button><br><br>
+
+<div style = "margin:20px; border: 2px solid; width: 400px;">
+	<input id="email" type="text" onclick="lookup()" style = "margin-left:20px;"> <button onclick="lookup()" class="btn btn-success">Lookup email</button><br><br>
+	<span id="consumerNotFound"></span>
+</div>
+
+<div style = "margin:15px">Add card details</div>
+<div style = "margin:20px; border: 2px solid; width: 400px;">
+	<input id="primaryAccountNumber" type="text" style = "margin:20px;"> Card Number <br><br>
+	<input id="panExpirationMonth" type="text" style = "margin:20px;"> Card Expiry Month <br><br>
+	<input id="panExpirationYear" type="text" style = "margin: 20px;"> Card Expiry Year <br><br>
+	<input id="cardSecurityCode" type="text" style = "margin:20px;"> Card Security Code <br><br>
+	<button onclick="addCard()" style = "margin-left:20px;" class="btn btn-dark">Add Card</button> <br><br>
+</div> <br><br>
+
+<div id="response" type="text" style="display:none; margin:20px; border: 5px solid blue; width: 500px;">
+  Scheme: <span id="scheme"></span><br><br>
+  Checkout Action Code: <span id="checkoutActionCode"></span><br><br>
+  SRC Correlation ID: <span id="srcCorrelationId"></span><br><br>
+  Merchant Transaction ID: <span id="merchantTransactionID"></span><br><br>
+</div> <br><br>
+<div class="container overflow-hidden text-center">
+  <div class="row gx-3">
+
+    <div class="col">
+     <div class="p-3" id="cardList"></div>
+    </div>
+    <div class="col">
+      <div class="p-3" id="dcf-container" style="height: 700px;"></div>
+    </div>
+	<div class="col">
+	 <span class="p-3" id="otpError"></span>
+     <div class="p-3" id="otp" style="height: 400px;"></div>
+
+    </div>
+  </div>
+</div>
 </body>
-
 </html>
